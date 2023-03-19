@@ -35,21 +35,12 @@ class GetAllTeachers(Resource):
     @teacher_namespace.doc(
         description = "Get all Teachers",
     )
-    
-    # is_student= Student.query.filter_by(role=current_user).first()
 
-    # @jwt_required()
-    # @admin_required()
+    @jwt_required()
     def get(self):
         """
-        Get all teachers
-        # """
-        # current_user = get_jwt_identity()
-        # is_admin = Admin.query.filter_by(role= current_user).first()
-        # if is_admin:
-        #     teachers = Teacher.query.all() 
-        #     return teachers, HTTPStatus.OK
-        # return {'message': "You are unauthorized"}, HTTPStatus.UNAUTHORIZED
+            Get all teachers
+        """
         teachers = Teacher.query.all()
 
         return marshal(teachers, teacher_model), HTTPStatus.OK
@@ -61,18 +52,11 @@ class SignUpTeacher(Resource):
     @teacher_namespace.doc(
         description = "Create a Teacher Account",
     )
-    # @admin_required()
-    # @jwt_required()
+    @jwt_required()
     def post(self):
         """
             Create a Teacher account
         """
-        # verify_jwt_in_request()
-
-        # current_user = User.query.filter_by().first()
-        
-        # checks if a the user is either the admin
-        # if current_user.role == "admin":
 
         data = teacher_namespace.payload
 
@@ -86,6 +70,3 @@ class SignUpTeacher(Resource):
         new_teacher.save()
 
         return new_teacher, HTTPStatus.CREATED
-        
-        # else:
-            # return {"message": "You must be an Admin to create a teacher"}, HTTPStatus.FORBIDDEN

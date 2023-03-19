@@ -8,8 +8,10 @@ from ..models.tables import User,Student, Teacher
 def get_user_role(id:int):
     user = User.query.filter_by(id=id).first()
     if user:
+        get_jwt()
         return user.role 
-    return None
+    else:
+        return None
 
 # decorator to handle admin authorization
 def admin_required():

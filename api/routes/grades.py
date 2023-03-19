@@ -1,8 +1,9 @@
 from flask_restx import Namespace, Resource, fields, abort, marshal
 from api.models.tables import User, Admin, Teacher, Grade, Enrollment, Course, Student
 from http import HTTPStatus
-from flask_jwt_extended import jwt_required, get_jwt_identity, get_current_user
+from flask_jwt_extended import jwt_required, JWTManager, get_jwt_identity, get_current_user, get_jwt
 from ..utils import db
+from ..utils.decorators import teacher_required, admin_required, get_user_role
 from sqlalchemy import exc
 from ..utils.gpa import get_gpa, get_grade
 
@@ -14,6 +15,7 @@ grade_model = grading_namespace.model(
     'student_id' : fields.Integer(description= "ID of student to to score"),
     'course_id' : fields.Integer(description="ID of the course"),
     'score': fields.Integer(description="Score of student in course"),
+    'grade': fields.String(description= 'grade of student'),
     'gpa': fields.Integer(description='gpa of course')
     }
 )
@@ -26,154 +28,147 @@ course_grading_model = grading_namespace.model(
     }
 )
 
+# Verify student or admin access
+def is_student_or_admin(student_id:int) -> bool:
+    claims = get_jwt()
+    active_user = get_jwt_identity()
+    if (get_user_role(claims['sub']) == 'admin') or (active_user == student_id):
+        return True
+    else:
+        return False
+
 @grading_namespace.route('/grades/student/<int:student_id>')
 class CourseGrades(Resource):
     @grading_namespace.expect(course_grading_model)
     # since we are returning use marshall
-    @grading_namespace.marshal_with(grade_model)
+    # @grading_namespace.marshal_with(grade_model)
     @grading_namespace.doc(
         description = "Grade a student in course by course id",
         # params = {'course_id': "An ID for a courses"}
     )
-    @jwt_required()
-    # @teacher_required()
+    # @admin_required()  
     def put(self, student_id):
         """
             Grade a student in a course
         """
-        # user_allowed = get_jwt_identity()
-        # author_admin = Admin.query.filter_by(email=user_allowed).first()
-        # author_student = Student.query.filter_by(email= user_allowed).first()
 
-        # data = grading_namespace.payload
+        data = grading_namespace.payload
 
-        # user_id = Student.query.filter_by(id = student_id).first()
-        # user_id_id = user_id.id
-        # grades = Grade.query.filter_by(student=user_id_id).all()
-        # try:
-        #     if len(grades) >= 1:
-        #         return {'message': "You are not authorized to grade this student again"}, HTTPStatus.UNAUTHORIZED
-        #     else:
-        #         if author_admin:
-        #             set_grade = Grade(score= data['score'])
-        #             set_grade.student = user_id_id
-        #             print (set_grade.student)
-        #             set_grade.save()
-        #             return set_grade, HTTPStatus.CREATED
-        #         elif author_student:
-        #             return {'message': "You are unauthorized"}, HTTPStatus.UNAUTHORIZED
-        # except AttributeError:
-        #     return {'message': 'User not found'}
-
-        # data = grading_namespace.payload
-        # data = student_namespace.payload
-        # student = Student.query.filter_by(id=student_id).first()
-        # course = Course.query.filter_by(id=data['course_id'])
+        student = Student.query.filter_by(id=data['student_id']).first()
+        course = Course.query.filter_by(id=data['course_id']).first()
         
-        # # Confirm that the student is taking the course
-        # student_course = Enrollment.query.filter_by(student_id=student_id, course_id=course.id).first()
-        # if not student_course:
-        #     return {"message": f"{student.name}] is not taking {course.name}"}, HTTPStatus.NOT_FOUND
+        # Confirm that the student is taking the course
+        student_course = Enrollment.query.filter_by(student_id=student.id, course_id= course.id).first()
+        already_graded = Grade.query.filter_by(student_id=student.id, course_id= course.id).first()
+        if not student_course:
+            return {"message": f"{student.name} is not taking {course.name}"}, HTTPStatus.NOT_FOUND
+        elif already_graded:
+            return {"message": f"{student.name} is already graded for {course.name}"}, HTTPStatus.NOT_FOUND
         
-        # # Add a new grade
-        # new_grade = Grade(
-        #     student_id = student_id,
-        #     course_id = data['course_id'],
-        #     score = data['score'],
-        #     grade = get_grade(data['score'])
-        # )
+        # Add a new grade
+        new_grade = Grade(
+            student_id = data['student_id'],
+            course_id = data['course_id'],
+            score = data['score'],
+            grade = get_grade(data['score']),
+        )
 
-        # new_grade.save()
+        new_grade.save()
 
-        # grade_resp = {}
-        # grade_resp['grade_id'] = new_grade.id
-        # grade_resp['student_id'] = new_grade.student_id
-        # grade_resp['student_name'] = student.name
-        # grade_resp['course_id'] = new_grade.course_id
-        # grade_resp['course_name'] = course.name
-        # grade_resp['course_teacher'] = course.teacher
-        # grade_resp['score'] = new_grade.score
-        # grade_resp['gpa'] = new_grade.letter_grade
+        # return new_grade, HTTPStatus.CREATED
 
-        # return grade_resp, HTTPStatus.CREATED
+        grade_resp = {}
+        grade_resp['grade_id'] = new_grade.id
+        grade_resp['student_id'] = new_grade.student_id
+        grade_resp['student_name'] = student.name
+        grade_resp['course_id'] = new_grade.course_id
+        grade_resp['course_name'] = course.name
+        grade_resp['course_teacher_id'] = course.teacher_id
+        grade_resp['score'] = new_grade.score
+        grade_resp['grade'] = new_grade.grade
+        grade_resp['gpa'] = get_gpa(grade_resp['grade'])
 
-# @grading_namespace.route('/grades')
-# class GetPostGrades(Resource):
-#     @grading_namespace.expect(grade_model)
-#     @grading_namespace.marshal_with(grade_model)
-#     @grading_namespace.doc(
-#         description = "Score a student"
-#     )
-#     # @jwt_required()
-#     def post (self):
+        return grade_resp, HTTPStatus.CREATED
 
-#         data = grading_namespace.payload
-#         # student = Student.get_id_by(student_id)
+# route for getting and deleting grades
+@grading_namespace.route('/grade/<int:grade_id>')
+class GetUpdateDelete(Resource):
 
-#         #  = Enrollment.query.filter_by(id = enrollment_id).first()
+    # getting a grade for
+    @grading_namespace.marshal_with(grade_model)
+    @grading_namespace.doc(
+        description = "Retreive a grade by its id",
+        params = {'grade_id': "An ID for a grade"}
+    )
+    @jwt_required()
+    def get(self, grade_id):
+        """
+            Retreiving a grade by id
+        """
+        grade = Grade.query.filter_by(id =grade_id).first()
 
-#         new_grade = Grade (
-#             # name = data['name'],
-#             # teacher_id = data['teacher_id']
-#             student_id = data['student_id'],
-#             course_id = data['course_id'],
-#             score = data['score'],
-#             grade = get_grade('score'),
-#             gpa= get_gpa(data['grade'])
-#         )
+        return grade, HTTPStatus.OK
 
-#         new_grade.save()
+# deleting a grade from the system
+    @admin_required()
+    def delete(self, grade_id):
+        """
+            Delete a grade
+        """
+        grade_to_delete = Grade.query.filter_by(id=grade_id).first()
 
-#         return new_grade, HTTPStatus.CREATED
+        grade_to_delete.delete()
 
+        return {"message": "Grade Deleted Successfully"}, HTTPStatus.OK
+    
 
+@grading_namespace.route('/<int:student_id>/cgpa')
+class GetStudentCGPA(Resource):
 
-
-
-    # def post(self, student_id, course_id):
-    #     """
-    #         post a new grade
-    #     """
-
-    #     data = grading_namespace.payload
-    #     score = data['score']
-
-    #     course = Course.query.filter_by(id = course_id).first()
-    #     student = Student.query.filter_by(id = student_id).first()
-
-    #     course_teacher = course.teacher
-    #     current_user = get_current_user
-
-    #     if course_teacher != current_user:
-    #         abort(403, message= "only course teacher can grade student")
-    #     error_msg = None
-
-    #     if student not in course.students:
-    #         error_msg = "This student did is not enrolled for this course"
+    @grading_namespace.doc(
+        description = "Calculate a Student's CGPA - Admins or Specific Student Only",
+        params = {
+            'student_id': "The Student's ID"
+        }
+    )
+    # @admin_required()
+    @jwt_required()
+    def get(self, student_id):
+        """
+            Calculate a Student's CGPA - Admins or Specific Student Only
+        """
+        current_user = User.query.filter_by(id=student_id).first()
         
-    #     try:
-    #         grade = Grade(student_id = student_id, course_id = course_id, score = score)
-    #         grade.get_grade()
-    #         grade.save()
-    #         return marshal(grade, grade_model), HTTPStatus.CREATED
-    #     except exc.IntegrityError:
-    #         error_msg = 'This student did not register for this course'
+        # if is_student_or_admin(student_id):
+        if current_user.id == student_id or current_user.role == "admin" or current_user.role == 'teacher':
 
-    #     abort(400, message= error_msg)
-        # new_grade = Grade(
-        #     # student_id = data['student_id'],
-        #     student_id = data[student_id],
-        #     # course_id = data['course_id'],
-        #     score = data['score'],
-        #     gpa = data['gpa']
+            student = Student.query.filter_by(id = student_id).first()
+                
+            courses = Enrollment.query.filter_by(id = student_id).all()
+                
+            total_gpa = 0
+                
+            for course in courses:
+                grades = Grade.query.filter_by(
+                        student_id=student_id 
+                        ).all()
+                
+                if grades:
+                    
+                    for grade in grades:
 
-        # )
+                        grade = grade.grade
+                        gpa = get_gpa(grade)
+                        total_gpa = total_gpa + gpa
+                    
+                    no_of_courses = len(grades)
+                else:
+                    return {"message": f"{student.name} is has no grade"}, HTTPStatus.OK
+                
+            cgpa = total_gpa / no_of_courses
+            round_cgpa = float("{:.3f}".format(cgpa))
 
-        # new_grade.save()
-        # db.session.add(new_grade)
-        # db.session.commit()
-
-        # return new_grade, HTTPStatus.OK
-
-
+            return {"message": f"{student.name}'s CGPA is {round_cgpa} with total GPA= {total_gpa}"}, HTTPStatus.OK
         
+        else:
+            return {"message": "Admins or Specific Student Only"}, HTTPStatus.FORBIDDEN

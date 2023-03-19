@@ -142,7 +142,7 @@ class Enrollment(db.Model):
     id = db.Column(db.Integer, primary_key= True)
     student_id = db.Column(db.Integer, db.ForeignKey('students.id'))
     course_id = db.Column(db.Integer, db.ForeignKey('courses.id'))
-    grade = db.relationship('Grade', backref ='enrollment', lazy = True)
+    # grade = db.relationship('Grade', backref ='enrollment', lazy = True)
 
     def __repr__(self):
         return f'Enrollment {self.id}'
@@ -181,8 +181,8 @@ class Grade (db.Model):
     student_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     course_id = db.Column(db.Integer, db.ForeignKey('courses.id'))
     score = db.Column(db.Float, nullable=False)
-    grade = db.Column(db.Float, nullable=False)
-    enrollment_id = db.Column(db.Integer, db.ForeignKey('enrollment.id'))
+    grade = db.Column(db.String, nullable=False)
+    # enrollment_id = db.Column(db.Integer, db.ForeignKey('enrollment.id'))
 
     def __repr__(self):
         return f'Grade {self.student.name} {self.course.name} {self.value}'

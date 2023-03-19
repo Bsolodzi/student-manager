@@ -22,7 +22,7 @@ def create_app(config=config_dict['dev']):
     #telling db, this is our app
     db.init_app(app)
 
-    #
+    
     jwt = JWTManager(app)
     
     #takes two 

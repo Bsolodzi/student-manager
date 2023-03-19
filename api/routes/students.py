@@ -42,6 +42,7 @@ delete_student_model = student_namespace.model(
     }
 )
 
+
 # route for creating new students
 @student_namespace.route('/register')
 class StudentRegisteration(Resource):
@@ -66,15 +67,15 @@ class StudentRegisteration(Resource):
 
         return new_student, HTTPStatus.CREATED
 
+
 @student_namespace.route('/')
 class GetAllStudents(Resource):
 
     @student_namespace.marshal_with(student_model)
     @student_namespace.doc(
-        description = "Get all students by Teachers and Admins only",
+        description = "Get all students",
     )
-    # @jwt_required()
-    # @admin_required()
+    @jwt_required()
     # get all students in school
     def get(self):
         """
@@ -84,14 +85,15 @@ class GetAllStudents(Resource):
 
         return students, HTTPStatus.OK
 
+
 @student_namespace.route('<int:student_id>')
 class GetUpdateDeleteStudent(Resource):
     @student_namespace.marshal_with(student_model)
     @student_namespace.doc(
-        description = "Get all students by Teachers and Admins only",
+        description = "Get all students",
         params = {'student_id': "An ID for student to be viewed"}
     )
-    # @jwt_required()
+    @jwt_required()
     # viewing a single student details
     def get(self, student_id):
         """
@@ -129,6 +131,7 @@ class GetUpdateDeleteStudent(Resource):
 
         return {"message": "Student Deleted Successfully"}, HTTPStatus.OK
     
+
     @student_namespace.expect(student_signup_model)
     @student_namespace.marshal_with(student_model)
     @student_namespace.doc(

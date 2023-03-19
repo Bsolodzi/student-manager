@@ -75,7 +75,7 @@ class CourseGetCreate(Resource):
     @course_namespace.doc(
         description = "Get all courses",
     )
-    # @jwt_required()
+    @jwt_required()
     # get all courses
     def get(self):
         """
@@ -94,6 +94,7 @@ class CourseGetCreate(Resource):
         description = "Create a course by admin only",
     )
     # @admin_required()
+    @jwt_required()
     def post(self):
         """
             Create a course
@@ -114,9 +115,6 @@ class CourseGetCreate(Resource):
             teacher_id = data['teacher_id']
         )
 
-        # use jwt_identity to get the user using the relationship created and now store as the user of the new order 
-        # new_course.name = current_user
-
         new_course.save()
 
         return new_course, HTTPStatus.CREATED
@@ -131,7 +129,7 @@ class GetUpdateDelete(Resource):
         description = "Retreive a course by its id",
         params = {'course_id': "An ID for a course"}
     )
-    # @jwt_required()
+    @jwt_required()
     def get(self, course_id):
         """
             Retreiving a course by id
@@ -149,7 +147,7 @@ class GetUpdateDelete(Resource):
 
     )
 
-    # @admin_required() 
+    @admin_required() 
     def put(self, course_id):
         """
             Update a course by id by only admin
@@ -172,8 +170,7 @@ class GetUpdateDelete(Resource):
         params = {'course_id': "An ID for a course"}
 
     )
-    # @admin_required()
-    # @jwt_required()
+    @admin_required()
     def delete(self, course_id):
         """
             Delete a course
@@ -231,13 +228,12 @@ class AddDropCourseStudent(Resource):
 @course_namespace.route('/<int:course_id>/students')
 class GetAllCourseStudents(Resource):
     @course_namespace.doc(
-        description = "Get all Students Enrolled for a Course - Admins Only",
+        description = "Get all Students Enrolled for a Course",
         params = {
             'course_id': "The Course's ID"
         }
     )
     @jwt_required()
-    # @admin_required()
     def get(self, course_id):
         """
             Get all Students Enrolled for a Course - Admins Only
@@ -263,7 +259,7 @@ class StudentCourses(Resource):
         description = "Get a student's courses by student id",
         params = {'student_id': "An ID for a student"}
     )
-    # @jwt_required()
+    @jwt_required()
     def get(self, student_id):
         """
             Get all student's courses
@@ -283,5 +279,3 @@ class StudentCourses(Resource):
             courses.append(course_resp)
 
         return courses, HTTPStatus.OK
-
-
