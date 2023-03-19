@@ -7,7 +7,7 @@ from ..utils.decorators import teacher_required, admin_required, get_user_role
 from sqlalchemy import exc
 from ..utils.gpa import get_gpa, get_grade
 
-grading_namespace = Namespace('Grades', description= 'namespace for grades')
+grading_namespace = Namespace('Grades', description= 'Grades operations')
 
 grade_model = grading_namespace.model(
     'Grade', {
@@ -126,7 +126,7 @@ class GetUpdateDelete(Resource):
 class GetStudentCGPA(Resource):
 
     @grading_namespace.doc(
-        description = "Calculate a Student's CGPA - Admins or Specific Student Only",
+        description = "Calculate a Student's CGPA",
         params = {
             'student_id': "The Student's ID"
         }
@@ -135,7 +135,7 @@ class GetStudentCGPA(Resource):
     @jwt_required()
     def get(self, student_id):
         """
-            Calculate a Student's CGPA - Admins or Specific Student Only
+            Calculate a Student's CGPA 
         """
         current_user = User.query.filter_by(id=student_id).first()
         

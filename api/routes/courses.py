@@ -187,7 +187,7 @@ class GetUpdateDelete(Resource):
 class AddDropCourseStudent(Resource):
     @course_namespace.marshal_with(student_enrollment_model)
     @course_namespace.doc(
-        description = "Enroll a Student for a Course - Admins Only",
+        description = "Enroll a Student for a Course",
         params = {
             'course_id': "The Course's ID"
         }
@@ -195,7 +195,7 @@ class AddDropCourseStudent(Resource):
     # @admin_required()
     def post(self, course_id, student_id):
         """
-            Enroll a Student for a Course - Admins Only
+            Enroll a Student for a Course
         """
         course = Course.query.filter_by(id=course_id).first()
         student = Student.query.filter_by(id=student_id).first()
@@ -236,7 +236,7 @@ class GetAllCourseStudents(Resource):
     @jwt_required()
     def get(self, course_id):
         """
-            Get all Students Enrolled for a Course - Admins Only
+            Get all Students Enrolled for a Course
         """
         get_students_in_course = Enrollment.get_students_in_course_by(course_id)
         resp = []

@@ -8,7 +8,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from http import HTTPStatus
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
 
-auth_namespace = Namespace('auth', description= 'namespace for authentication')
+auth_namespace = Namespace('auth', description= 'Authentication operations')
 
 #serializng data in place of using schema {db to serialize, data}
 signup_model = auth_namespace.model(
@@ -102,7 +102,7 @@ class GetAllUsers(Resource):
     @admin_required()
     def get(self):
         """
-            Retrieve all Users - Admins Only
+            Retrieve all Users
         """
         users = User.query.all()
 
