@@ -168,7 +168,7 @@ class GetStudentCGPA(Resource):
             cgpa = total_gpa / no_of_courses
             round_cgpa = float("{:.3f}".format(cgpa))
 
-            return {"message": f"{student.name}'s CGPA is {round_cgpa} with total GPA= {total_gpa}"}, HTTPStatus.OK
+            return {"message": f"{student.name}'s CGPA is {round_cgpa} with total GPA: {total_gpa}"}, HTTPStatus.OK
         
         else:
             return {"message": "Admins or Specific Student Only"}, HTTPStatus.FORBIDDEN
