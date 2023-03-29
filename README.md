@@ -14,7 +14,7 @@
 
 <!-- Project Name -->
 <div align="center">
-  <h1>Ze School</h1>
+  <h1>The Student Management API</h1>
 </div>
 
 <div>
@@ -142,7 +142,10 @@ Distributed under the MIT License. See <a href="https://github.com/bsolodzi/stud
 <!-- Contact Me-->
 ## Contact Me
 
-Bernard Kwame Solodzi - [Twitter](https://twitter.com/boss_assignment) - [Email me](bsolodzi@gmail.com)
+Bernard Kwame Solodzi
+[LinkedIn](https://www.linkedin.com/in/bernard-kwame-solodzi)
+[Twitter](https://twitter.com/boss_assignment) 
+Email me: bsolodzi@gmail.com
 
 Project Link: [Student Management API](https://github.com/bsolodzi/student-manager-api)
 
